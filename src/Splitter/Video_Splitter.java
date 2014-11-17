@@ -30,15 +30,18 @@ public class Video_Splitter {
     public static final long MICRO_SECONDS_BETWEEN_FRAMES = 
         (long)(Global.DEFAULT_PTS_PER_SECOND * SECONDS_BETWEEN_FRAMES);
     
-    public Video_Splitter(){
+    public Video_Splitter(int debug){
     	
-    	System.out.println(Splitt_Video(inputFilename).size());
+    	if(debug==1)
+    		System.out.println(Splitt_Video(inputFilename).size());
     	
     }
     
+    
+    
     public static void main(String[] args) {
 
-        new Video_Splitter();
+        new Video_Splitter(1);
 
     }
     
