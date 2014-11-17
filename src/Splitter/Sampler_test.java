@@ -32,29 +32,38 @@ public class Sampler_test {
     
     public Sampler_test(){
     	
+    	System.out.println(Splitt_Video(inputFilename).size());
+    	
     }
     
     public static void main(String[] args) {
 
-        IMediaReader mediaReader = ToolFactory.makeReader(inputFilename);
+        new Sampler_test();
 
+    }
+    
+    public ArrayList<BufferedImage> Splitt_Video(String inputFile){
+    	
+    	IMediaReader mediaReader = ToolFactory.makeReader(inputFile);
+    	
         // stipulate that we want BufferedImages created in BGR 24bit color space
         mediaReader.setBufferedImageTypeToGenerate(BufferedImage.TYPE_3BYTE_BGR);
         
-        mediaReader.addListener((IMediaListener) new ImageSnapListener());
+        ImageSnapListener Worker = new ImageSnapListener();
+        
+        mediaReader.addListener((IMediaListener) Worker);
 
         // read out the contents of the media file and
         // dispatch events to the attached listener
         while (mediaReader.readPacket() == null) ;
-
-    }
-    
-    public ArrayList<BufferedImage> Splitt_Video(){
-    	return null;
+        
+        return Worker.Screencapture;
     }
 
     private static class ImageSnapListener extends MediaListenerAdapter {
-
+    	
+    	private ArrayList<BufferedImage> Screencapture=null;
+    	
         public void onVideoPicture(IVideoPictureEvent event) {
 
             if (event.getStreamIndex() != mVideoStreamIndex) {
@@ -92,6 +101,12 @@ public class Sampler_test {
         
         private String dumpImageToFile(BufferedImage image) {
             try {
+            	if(this.Screencapture==null){
+            		this.Screencapture = new ArrayList<BufferedImage>();
+            	}
+            	
+            	Screencapture.add(image);
+            	
                 String outputFilename = outputFilePrefix + 
                      System.currentTimeMillis() + ".png";
                 ImageIO.write(image, "png", new File(outputFilename));
@@ -101,6 +116,10 @@ public class Sampler_test {
                 e.printStackTrace();
                 return null;
             }
+        }
+        
+        public ArrayList<BufferedImage> getScreencapture(){
+        	return this.Screencapture;
         }
 
     }
