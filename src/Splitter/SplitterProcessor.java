@@ -1,6 +1,7 @@
 package Splitter;
 
 import java.awt.image.BufferedImage;
+import java.awt.image.ColorConvertOp;
 import java.io.File;
 import java.io.IOException;
 import java.util.concurrent.BlockingQueue;
@@ -10,6 +11,8 @@ import javax.imageio.ImageIO;
 import com.xuggle.mediatool.MediaListenerAdapter;
 import com.xuggle.mediatool.event.IVideoPictureEvent;
 import com.xuggle.xuggler.Global;
+
+import debug.Debug;
 
 public class SplitterProcessor extends MediaListenerAdapter {
 	
@@ -22,19 +25,15 @@ public class SplitterProcessor extends MediaListenerAdapter {
 	// Time of last frame write
     private static long mLastPtsWrite = Global.NO_PTS;
 	
-  //if flag equals 1 it will output stacktrace from java
-	private int debug_flag;
-	
 	private long MICRO_SECONDS_BETWEEN_FRAMES;
 	
 	//location where splitter will save images
 	private String outputFilePrefix;
 	
-	public SplitterProcessor(int 							debug_flag,
-							  long 							MICRO_SECONDS_BETWEEN_FRAMES,
+	public SplitterProcessor( long 							MICRO_SECONDS_BETWEEN_FRAMES,
 							  String 						outputFilePrefix,
 							  BlockingQueue<String>		 	ImagesPath) {
-		this.debug_flag = debug_flag;
+		
 		this.MICRO_SECONDS_BETWEEN_FRAMES = MICRO_SECONDS_BETWEEN_FRAMES;
 		this.outputFilePrefix = outputFilePrefix;
 		this.ImagesPath = ImagesPath;
@@ -64,16 +63,14 @@ public class SplitterProcessor extends MediaListenerAdapter {
         if (event.getTimeStamp() - mLastPtsWrite >= 
                 MICRO_SECONDS_BETWEEN_FRAMES) {
                             
-            String outputFilename = dumpImageToFile(event.getImage());
+            String outputFilename = dumpImageToFile(event.getImage(), 
+            										event.getTimeStamp());
 
             // indicate file written
             double seconds = ((double) event.getTimeStamp()) / 
                 Global.DEFAULT_PTS_PER_SECOND;
             
-            if(debug_flag==1)
-            	System.out.printf(
-	                    "at elapsed time of %6.3f seconds wrote: %s\n",
-	                    seconds, outputFilename);
+            Debug.printDebug("at elapsed time of "+seconds+" seconds wrote: "+ outputFilename+"\n");
 
             // update last write time
             mLastPtsWrite += MICRO_SECONDS_BETWEEN_FRAMES;
@@ -81,27 +78,36 @@ public class SplitterProcessor extends MediaListenerAdapter {
 
     }
     
-    private String dumpImageToFile(BufferedImage image) {
+    //timestamp in microseconds
+    private String dumpImageToFile(BufferedImage image, Long timeStamp) {
+    	BufferedImage gray = new BufferedImage(image.getWidth(),image.getHeight(),
+                BufferedImage.TYPE_BYTE_GRAY);
+
+               // convert the original colored image to grayscale
+               ColorConvertOp op = new ColorConvertOp(
+                image.getColorModel().getColorSpace(),
+                gray.getColorModel().getColorSpace(),null);
+               op.filter(image,gray);
+    	
         try {
-        		String outputFilename = outputFilePrefix + 
-                        System.currentTimeMillis() + ".png";
+        		String outputFilename = outputFilePrefix +"\\"+ 
+                        timeStamp + ".png";
         		
+        		ImageIO.write(gray, "png", new File(outputFilename));
+                
         		this.ImagesPath.put(outputFilename);
-                ImageIO.write(image, "png", new File(outputFilename));
                 
                 return outputFilename;
         } 
         catch (IOException e) {
         	
-        	if(debug_flag==1)
-        		e.printStackTrace();
-            
+        	Debug.printDebug(e.getMessage());
+        	
         	System.out.println("Error writting file to disk");
             
         } catch (InterruptedException e) {
         	
-        	if(debug_flag==1)
-        		e.printStackTrace();
+        	Debug.printDebug(e.getMessage());
 			
         	System.out.println("Error inserting image to queue");
 		}

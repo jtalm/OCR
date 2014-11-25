@@ -13,7 +13,9 @@ import com.xuggle.mediatool.IMediaReader;
 import com.xuggle.mediatool.ToolFactory;
 import com.xuggle.xuggler.Global;
 
-public class VideoSplitter {
+import debug.Debug;
+
+public class VideoSplitter implements Runnable {
 	
 	//default values
 	private double SECONDS_BETWEEN_FRAMES = 0.5;
@@ -42,17 +44,21 @@ public class VideoSplitter {
     private long MICRO_SECONDS_BETWEEN_FRAMES = 
         (long)(Global.DEFAULT_PTS_PER_SECOND * SECONDS_BETWEEN_FRAMES);
     
-    //if flag equals 1 it will output stacktrace from java
-    private int debug_flag;
+    private String fileToSplit;
+    private String locationOutput;
+    private BlockingQueue<String> imagesPath;
+    private AtomicBoolean threadEnd;
     
-    public VideoSplitter(int 							debug,
-    					  String 						FileToSplit,
+    public VideoSplitter( String 						FileToSplit,
     					  String						LocationOutput,
     					  BlockingQueue<String>			ImagesPath,
     					  //flag to notice the splitter end
     					  AtomicBoolean					ThreadEnd){
-
-    	this.debug_flag=debug;
+    	
+    	this.fileToSplit = FileToSplit;
+    	this.locationOutput = LocationOutput;
+    	this.imagesPath = ImagesPath;
+    	this.threadEnd = ThreadEnd;
     	
     	this.ReadConfigFile();    	
     	
@@ -60,11 +66,20 @@ public class VideoSplitter {
     		ResourceFolder = ResourceFolder + "\\";
     	}
     	
-    	SplitVideo(ResourceFolder+FileToSplit,
-    					LocationOutput,
-    					ImagesPath,
-    					ThreadEnd);
     	
+    	
+    }
+    
+    @Override
+    public void run() {
+    	SplitVideo(ResourceFolder+fileToSplit,
+				locationOutput,
+				imagesPath,
+				threadEnd);
+    	
+    	Debug.printDebug("Splitter finished!");
+    	
+    	threadEnd.set(false);
     }
     
     /**
@@ -97,8 +112,7 @@ public class VideoSplitter {
 	        		}
 	        		
 	        	} catch(Exception e){
-	        		if(debug_flag==1)
-	            		e.printStackTrace();
+	        		e.printStackTrace();
 	        	}
 	        }
 	        
@@ -106,8 +120,7 @@ public class VideoSplitter {
     	
     	} catch (IOException e1){
     	
-    		if(debug_flag==1)
-        		e1.printStackTrace();
+    		Debug.printDebug(e1.getMessage());
     		System.out.println("File \"Config_Splitter.ini\" not found! ");
     	}
     }
@@ -123,8 +136,9 @@ public class VideoSplitter {
         // stipulate that we want BufferedImages created in BGR 24bit colour space
         mediaReader.setBufferedImageTypeToGenerate(BufferedImage.TYPE_3BYTE_BGR);
         
-        SplitterProcessor Worker = new SplitterProcessor(debug_flag, 
-        												  MICRO_SECONDS_BETWEEN_FRAMES,
+        Debug.printDebug(LocationOutput);
+        
+        SplitterProcessor Worker = new SplitterProcessor( MICRO_SECONDS_BETWEEN_FRAMES,
         												  LocationOutput,
         												  ImagesPath);
         
@@ -133,13 +147,7 @@ public class VideoSplitter {
         // read out the contents of the media file and
         // dispatch events to the attached listener
         while (mediaReader.readPacket() == null) ;
-        
-        synchronized (ThreadEnd) {
-            ThreadEnd.set(false);
-            ThreadEnd.notifyAll();
-		}
-        
-        
+                
         return 0;
     }
     
@@ -149,8 +157,7 @@ public class VideoSplitter {
     	
     	BlockingQueue<String> TestObject = new LinkedBlockingQueue<String>();
     	
-        new VideoSplitter(	0,
-        					inputFilename,
+        new VideoSplitter(	inputFilename,
         					outputFilePrefix,
         					TestObject,
         					new AtomicBoolean(true));
@@ -159,7 +166,7 @@ public class VideoSplitter {
         	try{
         		System.out.println(TestObject.take());
         	} catch (InterruptedException e) {
-        		
+        		e.printStackTrace();
         	}
         }
 
