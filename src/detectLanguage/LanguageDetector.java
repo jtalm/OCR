@@ -11,7 +11,7 @@ public final class LanguageDetector {
 		String lang="";
 		Detector detector;
 		try {
-			DetectorFactory.loadProfile(".\\profiles");
+			DetectorFactory.loadProfile("./profiles");
 			detector = DetectorFactory.create();
 
 			detector.append(lyric);

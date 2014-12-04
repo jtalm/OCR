@@ -13,7 +13,7 @@ import ocr.OCRLyricsCompiler;
 
 public class OCREngine implements Runnable{
 	
-	private float OCRSimillarityThreshold = (float) 0.2;
+	private float OCRSimillarityThreshold = (float) 0.1;
 	
 	private AtomicBoolean SplitterThreadAlive;
 	private BlockingQueue<String> ImagesPath;
@@ -25,18 +25,24 @@ public class OCREngine implements Runnable{
 	private String lyrics;
 	private String buffer="";
 	
+	private String fileSeparator;
+	private String outputFilename;
+	
 	public OCREngine(		String					outputLocation,
 							BlockingQueue<String> 	ImagesPath,
 							AtomicBoolean 			SplitterThreadAlive,
-							String 					lyric) {
+							String 					lyric,
+							String					outputFilename) {
 		
-		
+		this.outputFilename = outputFilename;
 		this.lyrics = lyric;
 		
 		this.analyser = new OCRLyricsCompiler();
 		this.outputLocation = outputLocation;
 		this.ImagesPath = ImagesPath;
 		this.SplitterThreadAlive = SplitterThreadAlive;
+		
+		fileSeparator = System.getProperty("file.separator");
 	}
 	
 	@Override
@@ -49,7 +55,7 @@ public class OCREngine implements Runnable{
 		
 		PrintWriter lyricsFile=null;
 		try {
-			lyricsFile = new PrintWriter(outputLocation+"\\lyrics.txt", "UTF-8");
+			lyricsFile = new PrintWriter(outputLocation+fileSeparator+outputFilename, "UTF-8");
 		} catch (FileNotFoundException e1) {
 			e1.printStackTrace();
 		} catch (UnsupportedEncodingException e1) {
@@ -87,7 +93,6 @@ public class OCREngine implements Runnable{
 					int divisor = Math.max(ocrResult[1].length(), buffer.length());
 					
 					differenceQuoficient = (float)(Levenshtein.LevenshteinDistance(ocrResult[1],buffer)/(divisor*1.0));
-					
 					
 					
 					Debug.printDebug(differenceQuoficient+"");

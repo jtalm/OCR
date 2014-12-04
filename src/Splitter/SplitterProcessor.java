@@ -17,6 +17,7 @@ import debug.Debug;
 public class SplitterProcessor extends MediaListenerAdapter {
 	
 	private BlockingQueue<String> ImagesPath=null;
+	private BlockingQueue<String> ImagesPathBW=null;
 	
 	// The video stream index, used to ensure we display frames from one and
     // only one video stream from the media container.
@@ -30,13 +31,19 @@ public class SplitterProcessor extends MediaListenerAdapter {
 	//location where splitter will save images
 	private String outputFilePrefix;
 	
+	private String folderSeparator;
+	
 	public SplitterProcessor( long 							MICRO_SECONDS_BETWEEN_FRAMES,
 							  String 						outputFilePrefix,
-							  BlockingQueue<String>		 	ImagesPath) {
+							  BlockingQueue<String>		 	ImagesPath,
+							  BlockingQueue<String>			ImagesPathBW) {
 		
 		this.MICRO_SECONDS_BETWEEN_FRAMES = MICRO_SECONDS_BETWEEN_FRAMES;
 		this.outputFilePrefix = outputFilePrefix;
+		this.ImagesPathBW = ImagesPathBW;
 		this.ImagesPath = ImagesPath;
+		
+		folderSeparator = System.getProperty("file.separator");
 		
 	}
 	
@@ -90,13 +97,20 @@ public class SplitterProcessor extends MediaListenerAdapter {
                op.filter(image,gray);
     	
         try {
-        		String outputFilename = outputFilePrefix +"\\"+ 
+        		String outputFilenameBW = outputFilePrefix + folderSeparator + 
+                        timeStamp + ".BW" + ".png";
+        		String outputFilename = outputFilePrefix + folderSeparator + 
                         timeStamp + ".png";
         		
-        		ImageIO.write(gray, "png", new File(outputFilename));
-                
-        		this.ImagesPath.put(outputFilename);
-                
+        		if(this.ImagesPath!=null){
+        			ImageIO.write(image, "png", new File(outputFilename));
+        			this.ImagesPath.put(outputFilename);
+        		}
+                if(this.ImagesPathBW!=null){
+                	ImageIO.write(gray, "png", new File(outputFilenameBW));
+                	this.ImagesPathBW.put(outputFilenameBW);
+                	
+                }
                 return outputFilename;
         } 
         catch (IOException e) {

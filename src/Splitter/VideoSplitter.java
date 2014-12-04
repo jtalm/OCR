@@ -19,8 +19,8 @@ public class VideoSplitter implements Runnable {
 	
 	//default values
 	private double SECONDS_BETWEEN_FRAMES = 0.5;
-	private String ResourceFolder = ".\\";
-	
+	private String ResourceFolder = "./";
+	private String folderSeparator;
 	
 	/* 
 	 * 
@@ -34,11 +34,11 @@ public class VideoSplitter implements Runnable {
 	 * 
 	 */
 	
-	private final String Config_File = ".\\Config_Splitter.ini";
+	private final String Config_File = "./Config_Splitter.ini";
 	
 	//location of file input and directory output to test class
     private static String inputFilename = "videoplayback.mp4";
-    private static String outputFilePrefix = ".\\images\\";
+    private static String outputFilePrefix = "./images/";
     
     
     private long MICRO_SECONDS_BETWEEN_FRAMES = 
@@ -47,23 +47,28 @@ public class VideoSplitter implements Runnable {
     private String fileToSplit;
     private String locationOutput;
     private BlockingQueue<String> imagesPath;
+    private BlockingQueue<String> imagesPathBW;
     private AtomicBoolean threadEnd;
     
     public VideoSplitter( String 						FileToSplit,
     					  String						LocationOutput,
     					  BlockingQueue<String>			ImagesPath,
+    					  BlockingQueue<String> 		ImagesPathBW,
     					  //flag to notice the splitter end
     					  AtomicBoolean					ThreadEnd){
     	
     	this.fileToSplit = FileToSplit;
     	this.locationOutput = LocationOutput;
     	this.imagesPath = ImagesPath;
+    	this.imagesPathBW = ImagesPathBW;
     	this.threadEnd = ThreadEnd;
     	
     	this.ReadConfigFile();    	
     	
-    	if(ResourceFolder.endsWith("\\")==false){
-    		ResourceFolder = ResourceFolder + "\\";
+    	folderSeparator = System.getProperty("file.separator");
+    	
+    	if(ResourceFolder.endsWith(folderSeparator)==false){
+    		ResourceFolder = ResourceFolder + folderSeparator;
     	}
     	
     	
@@ -75,6 +80,7 @@ public class VideoSplitter implements Runnable {
     	SplitVideo(ResourceFolder+fileToSplit,
 				locationOutput,
 				imagesPath,
+				imagesPathBW,
 				threadEnd);
     	
     	Debug.printDebug("Splitter finished!");
@@ -129,6 +135,7 @@ public class VideoSplitter implements Runnable {
     public int SplitVideo( String 						InputFile,
     						 String 						LocationOutput,
     						 BlockingQueue<String>		 	ImagesPath,
+    						 BlockingQueue<String> 			ImagesPathBW,
     						 AtomicBoolean					ThreadEnd){
     	
     	IMediaReader mediaReader = ToolFactory.makeReader(InputFile);
@@ -140,7 +147,8 @@ public class VideoSplitter implements Runnable {
         
         SplitterProcessor Worker = new SplitterProcessor( MICRO_SECONDS_BETWEEN_FRAMES,
         												  LocationOutput,
-        												  ImagesPath);
+        												  ImagesPath,
+        												  ImagesPathBW);
         
         mediaReader.addListener((IMediaListener) Worker);
 
@@ -160,6 +168,7 @@ public class VideoSplitter implements Runnable {
         new VideoSplitter(	inputFilename,
         					outputFilePrefix,
         					TestObject,
+        					null,
         					new AtomicBoolean(true));
         
         while(!TestObject.isEmpty()){

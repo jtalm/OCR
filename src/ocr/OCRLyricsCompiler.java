@@ -11,8 +11,9 @@ public class OCRLyricsCompiler {
 	
 	
 	public OCRLyricsCompiler() {
+		String fileSeparator = System.getProperty("file.separator");
 		this.instance = new Tesseract1();
-		this.instance.setDatapath(".\\");
+		this.instance.setDatapath("."+fileSeparator);
 		this.instance.setLanguage("eng");
 	}
 
