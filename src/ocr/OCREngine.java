@@ -11,9 +11,14 @@ import java.util.concurrent.atomic.AtomicBoolean;
 import debug.Debug;
 import ocr.OCRLyricsCompiler;
 
+// TODO: Auto-generated Javadoc
+/**
+ * The Class OCREngine.
+ * Module \
+ */
 public class OCREngine implements Runnable{
 	
-	private float OCRSimillarityThreshold = (float) 0.1;
+	private float OCRSimillarityThreshold = (float) 0.2;
 	
 	private AtomicBoolean SplitterThreadAlive;
 	private BlockingQueue<String> ImagesPath;
@@ -24,20 +29,39 @@ public class OCREngine implements Runnable{
 	
 	private String lyrics;
 	private String buffer="";
+	private String lasttime="";
 	
+	private String lyricretrieved="";
+	
+	public String getLyricretrieved() {
+		return lyricretrieved;
+	}
+
 	private String fileSeparator;
 	private String outputFilename;
 	
+	private float similarity=1;
+	
+	/**
+	 * Instantiates a new OCR engine.
+	 *
+	 * @param outputLocation the output location
+	 * @param ImagesPath the images path
+	 * @param SplitterThreadAlive the splitter thread alive
+	 * @param lyric the lyric
+	 * @param outputFilename the output filename
+	 */
 	public OCREngine(		String					outputLocation,
 							BlockingQueue<String> 	ImagesPath,
 							AtomicBoolean 			SplitterThreadAlive,
 							String 					lyric,
-							String					outputFilename) {
+							String					outputFilename,
+							String 					lang) {
 		
 		this.outputFilename = outputFilename;
 		this.lyrics = lyric;
 		
-		this.analyser = new OCRLyricsCompiler();
+		this.analyser = new OCRLyricsCompiler(lang);
 		this.outputLocation = outputLocation;
 		this.ImagesPath = ImagesPath;
 		this.SplitterThreadAlive = SplitterThreadAlive;
@@ -101,15 +125,20 @@ public class OCREngine implements Runnable{
 						Debug.printDebug(ocrResult[1]);
 						Debug.printDebug(buffer);
 						
-						lyricsFile.write(ocrResult[0]+":"+ocrResult[1]);
+						lyricsFile.write(ocrResult[0]+":"+buffer);
 						lyricsFile.flush();
+						
+						this.lyricretrieved += ocrResult[1];
+						
 						buffer = ocrResult[1].substring(0);
+						
 					}else {
 
 						Debug.printDebug("deleting file");
 						image.delete();
 						
 					}
+					lasttime = ocrResult[0];
 					
 					break;
 				} catch (java.lang.Error e) {
@@ -121,6 +150,20 @@ public class OCREngine implements Runnable{
 		if(SplitterThreadAlive.get()==true){
 			Debug.printDebug("splitter is dead");
 		}
+		
+		lyricsFile.write(lasttime+":"+buffer);
+		lyricsFile.flush();
+		lyricsFile.close();
+		
+		int divisor = Math.max(lyricretrieved.length(), lyrics.length());
+		
+		differenceQuoficient = (float)(Levenshtein.LevenshteinDistance(lyricretrieved,lyrics)/(divisor*1.0));
+		Debug.printDebug(outputFilename+"FINISH: "+differenceQuoficient);
+		this.similarity = differenceQuoficient;
+	}
+	
+	public float getSimilarity() {
+		return similarity;
 	}
 	
 }

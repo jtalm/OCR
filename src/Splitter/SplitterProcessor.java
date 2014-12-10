@@ -14,6 +14,10 @@ import com.xuggle.xuggler.Global;
 
 import debug.Debug;
 
+// TODO: Auto-generated Javadoc
+/**
+ * The Class SplitterProcessor.
+ */
 public class SplitterProcessor extends MediaListenerAdapter {
 	
 	private BlockingQueue<String> ImagesPath=null;
@@ -33,6 +37,14 @@ public class SplitterProcessor extends MediaListenerAdapter {
 	
 	private String folderSeparator;
 	
+	/**
+	 * Instantiates a new splitter processor.
+	 *
+	 * @param MICRO_SECONDS_BETWEEN_FRAMES the micro seconds between frames
+	 * @param outputFilePrefix the output file prefix
+	 * @param ImagesPath the images path
+	 * @param ImagesPathBW the images path bw
+	 */
 	public SplitterProcessor( long 							MICRO_SECONDS_BETWEEN_FRAMES,
 							  String 						outputFilePrefix,
 							  BlockingQueue<String>		 	ImagesPath,

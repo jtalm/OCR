@@ -1,15 +1,22 @@
-package ocr;
+	package ocr;
 /**
  *	Available at http://en.wikibooks.org/wiki/Algorithm_Implementation/Strings/Levenshtein_distance#Java
  */
 
 
 /**
- *	Returns the minium number of transformations to
- *	convert s0 to s1
+ * Implementation of the Levenshtein algorithm
  */
 
 public final class Levenshtein{
+	
+	/**
+	 * Levenshtein distance.
+	 *
+	 * @param s0 the String 1
+	 * @param s1 the String 2
+	 * @return Minimum number of transformations needed to change s0 to s1
+	 */
 	public  static int LevenshteinDistance (String s0, String s1) {                          
 		int len0 = s0.length() + 1;                                                     
 		int len1 = s1.length() + 1;                                                     

@@ -15,6 +15,10 @@ import com.xuggle.xuggler.Global;
 
 import debug.Debug;
 
+// TODO: Auto-generated Javadoc
+/**
+ * The Class VideoSplitter.
+ */
 public class VideoSplitter implements Runnable {
 	
 	//default values
@@ -50,6 +54,15 @@ public class VideoSplitter implements Runnable {
     private BlockingQueue<String> imagesPathBW;
     private AtomicBoolean threadEnd;
     
+    /**
+     * Instantiates a new video splitter.
+     *
+     * @param FileToSplit the file to split
+     * @param LocationOutput the location output
+     * @param ImagesPath the images path
+     * @param ImagesPathBW the images path bw
+     * @param ThreadEnd the thread end
+     */
     public VideoSplitter( String 						FileToSplit,
     					  String						LocationOutput,
     					  BlockingQueue<String>			ImagesPath,
@@ -132,6 +145,16 @@ public class VideoSplitter implements Runnable {
     }
     
     
+    /**
+     * Split video.
+     *
+     * @param InputFile the input file
+     * @param LocationOutput the location output
+     * @param ImagesPath the images path
+     * @param ImagesPathBW the images path bw
+     * @param ThreadEnd the thread end
+     * @return the int
+     */
     public int SplitVideo( String 						InputFile,
     						 String 						LocationOutput,
     						 BlockingQueue<String>		 	ImagesPath,
@@ -161,6 +184,11 @@ public class VideoSplitter implements Runnable {
     
     //used only to test the splitter
     //Will disapear afterwards
+    /**
+     * The main method.
+     *
+     * @param args the arguments
+     */
     public static void main(String[] args) {
     	
     	BlockingQueue<String> TestObject = new LinkedBlockingQueue<String>();
