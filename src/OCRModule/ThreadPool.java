@@ -43,6 +43,7 @@ public class ThreadPool implements Runnable  {
 	 */
 	public static void main(String[] args) {
 		ThreadPool Run = new ThreadPool();
+		Run.run();
 	}
 
 	@Override

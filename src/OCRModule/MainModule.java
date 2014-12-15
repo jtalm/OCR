@@ -1,10 +1,12 @@
 package OCRModule;
 
 import java.io.File;
+import java.io.FileNotFoundException;
 import java.util.concurrent.BlockingQueue;
 import java.util.concurrent.LinkedBlockingQueue;
 import java.util.concurrent.atomic.AtomicBoolean;
 
+import debug.Debug;
 import detectLanguage.LanguageDetector;
 import edu.dei.gp.jpa.Song;
 import edu.dei.gp.status.OCRStatus;
@@ -47,7 +49,7 @@ public class MainModule implements Runnable {
 
 		this.outputLocation = outputLocation;
 		this.FileToSplit 	= fileToSplit;
-
+		this.fileName = (new File(this.FileToSplit)).getName();
 
 		this.Lyric = "For every man there is a cause which he would gladly die for \n"
 				+ "Defend the right to have a place for which he can belong to \n"
@@ -64,10 +66,14 @@ public class MainModule implements Runnable {
 	 * @param args the arguments
 	 */
 	public static void main(String[] args) {
-		String fileSeparator = System.getProperty("file.separator");
-		new MainModule(	"."+fileSeparator+"images",
-				"./a.avi"
-				).run();
+		if(args.length<=0 || args.length>2){
+			System.out.println("Invalid Arguments");
+			System.out.println("to run just run command example:");
+			System.out.println("java MainModule music.avi c:\\output");
+		} else {
+			new MainModule(	args[1],
+							args[0]).run();
+		}
 	}
 
 	@Override
@@ -82,13 +88,23 @@ public class MainModule implements Runnable {
 
 		String lang = LanguageDetector.DetectLanguage(Lyric);
 		System.out.println(lang);
-
-		VideoSplitter threadSplit = new VideoSplitter(	FileToSplit, 
-				outputLocation, 
-				FilePath,
-				FilePathBW,
-				SplitterThreadAlive);
-		//threadSplit.run();
+		VideoSplitter threadSplit = null;
+		try{
+			threadSplit = new VideoSplitter(	FileToSplit, 
+												outputLocation, 
+												FilePath,
+												FilePathBW,
+												SplitterThreadAlive);
+		} catch (FileNotFoundException e){
+			Debug.printDebug("File not found or outputlocation not valid");
+			music.setOcrStatus(OCRStatus.ERROR);
+			return ;
+		} catch (RuntimeException e) {
+			Debug.printDebug("Invalid format");
+			music.setOcrStatus(OCRStatus.ERROR);
+			return ;
+		}
+		
 		Thread split = new Thread(threadSplit);
 		split.start();
 

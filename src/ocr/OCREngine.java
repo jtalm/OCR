@@ -142,7 +142,7 @@ public class OCREngine implements Runnable{
 					
 					break;
 				} catch (java.lang.Error e) {
-					System.out.println("ERROR");
+					Debug.printDebug("ERROR tessaract library");
 				}
 			}
 			

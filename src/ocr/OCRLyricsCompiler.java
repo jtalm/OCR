@@ -47,11 +47,9 @@ public class OCRLyricsCompiler {
 			}
 			
 		} catch (TesseractException e){
-			System.out.println("ERROR");
-			System.out.println(e.getMessage());
+			Debug.printDebug("ERROR Tesseract");
 		} catch (Exception e) {
-			e.printStackTrace();
-			System.out.println("ERROR");
+			Debug.printDebug("ERROR");
 		}
 		
 		String[] results = new String[2];

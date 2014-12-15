@@ -2,11 +2,14 @@ package Splitter;
 
 import java.awt.image.BufferedImage;
 import java.io.BufferedReader;
+import java.io.File;
+import java.io.FileNotFoundException;
 import java.io.FileReader;
 import java.io.IOException;
 import java.util.concurrent.BlockingQueue;
 import java.util.concurrent.LinkedBlockingQueue;
 import java.util.concurrent.atomic.AtomicBoolean;
+
 
 import com.xuggle.mediatool.IMediaListener;
 import com.xuggle.mediatool.IMediaReader;
@@ -23,8 +26,6 @@ public class VideoSplitter implements Runnable {
 	
 	//default values
 	private double SECONDS_BETWEEN_FRAMES = 0.5;
-	private String ResourceFolder = "./";
-	private String folderSeparator;
 	
 	/* 
 	 * 
@@ -41,7 +42,7 @@ public class VideoSplitter implements Runnable {
 	private final String Config_File = "./Config_Splitter.ini";
 	
 	//location of file input and directory output to test class
-    private static String inputFilename = "videoplayback.mp4";
+    private static String inputFilename = "./images/9275933.png";
     private static String outputFilePrefix = "./images/";
     
     
@@ -54,6 +55,8 @@ public class VideoSplitter implements Runnable {
     private BlockingQueue<String> imagesPathBW;
     private AtomicBoolean threadEnd;
     
+    private String[] supportedFormats={"avi","flv","3gp","mpg","mp4","webm","ogg","mkv","wmv","rmvb","m4v"};
+    
     /**
      * Instantiates a new video splitter.
      *
@@ -62,13 +65,35 @@ public class VideoSplitter implements Runnable {
      * @param ImagesPath the images path
      * @param ImagesPathBW the images path bw
      * @param ThreadEnd the thread end
+     * @throws FileNotFoundException 
      */
     public VideoSplitter( String 						FileToSplit,
     					  String						LocationOutput,
     					  BlockingQueue<String>			ImagesPath,
     					  BlockingQueue<String> 		ImagesPathBW,
     					  //flag to notice the splitter end
-    					  AtomicBoolean					ThreadEnd){
+    					  AtomicBoolean					ThreadEnd) throws FileNotFoundException,RuntimeException{
+    	
+    	File tmp = new File(FileToSplit);
+    	String fileFormat = null;
+    	String fileExtentions = FileToSplit.substring(FileToSplit.length()-3, FileToSplit.length()); 
+
+    	if(!tmp.exists()){
+    		throw new FileNotFoundException();
+    	}
+    	
+    	for(String i:supportedFormats){
+    		if(i.equalsIgnoreCase(fileExtentions)){
+    			fileFormat = i;
+    		}
+    	}
+    	if(fileFormat==null){
+    		throw new RuntimeException("Unsupported Format");
+    	}
+    	tmp = new File(LocationOutput);
+    	if(!tmp.exists()){
+    		throw new FileNotFoundException();
+    	}
     	
     	this.fileToSplit = FileToSplit;
     	this.locationOutput = LocationOutput;
@@ -78,19 +103,13 @@ public class VideoSplitter implements Runnable {
     	
     	this.ReadConfigFile();    	
     	
-    	folderSeparator = System.getProperty("file.separator");
-    	
-    	if(ResourceFolder.endsWith(folderSeparator)==false){
-    		ResourceFolder = ResourceFolder + folderSeparator;
-    	}
-    	
     	
     	
     }
     
     @Override
     public void run() {
-    	SplitVideo(ResourceFolder+fileToSplit,
+    	SplitVideo(fileToSplit,
 				locationOutput,
 				imagesPath,
 				imagesPathBW,
@@ -125,11 +144,6 @@ public class VideoSplitter implements Runnable {
 	        					(long)(Global.DEFAULT_PTS_PER_SECOND * this.SECONDS_BETWEEN_FRAMES);
 	        		
 	        		}
-	        		
-	        		if(buffer[0].equals("resource_folder")){
-	        			this.ResourceFolder=buffer[1];
-	        		}
-	        		
 	        	} catch(Exception e){
 	        		e.printStackTrace();
 	        	}
@@ -189,7 +203,7 @@ public class VideoSplitter implements Runnable {
      *
      * @param args the arguments
      */
-    public static void main(String[] args) {
+    public static void main(String[] args) throws FileNotFoundException,RuntimeException{
     	
     	BlockingQueue<String> TestObject = new LinkedBlockingQueue<String>();
     	
